@@ -25,5 +25,7 @@ class CarItem(scrapy.Item):
     drive = scrapy.Field()
     fuel = scrapy.Field()
     keys = scrapy.Field()
+    price = scrapy.Field()
     autocheck = scrapy.Field()
+    vin_text = scrapy.Field()
     
