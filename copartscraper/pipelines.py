@@ -25,16 +25,10 @@ class CopartscraperPipeline:
     def create_table(self):
         # Create the table if it doesn't exist
         self.cursor.execute("""
-        CREATE TABLE IF NOT EXISTS copartauto (
+        CREATE TABLE IF NOT EXISTS first_ex (
             id SERIAL PRIMARY KEY,
             url TEXT,
             title TEXT,
-            guarantee TEXT,
-            condition TEXT,
-            address TEXT,
-            phone TEXT,
-            sale_date TIMESTAMP,
-            seller_data TEXT,
             lot_number TEXT,
             odometer TEXT,
             transmission TEXT,
@@ -42,45 +36,35 @@ class CopartscraperPipeline:
             fuel TEXT,
             keys TEXT,
             price TEXT,
-            autocheck INT,
-            vin_text TEXT
+            vin_text TEXT,
+            primary_damage TEXT,
+            secondary_damage TEXT, 
+            ERV TEXT, 
+            cylinders TEXT, 
+            body_style TEXT, 
+            color TEXT, 
+            engine_type TEXT, 
+            vehicle_type TEXT, 
+            highlights TEXT, 
+            notes TEXT 
         )
         """)
         self.connection.commit()
 
     def process_item(self, item, spider):
-        # Remove "Icon" from "condition"
-        item['condition'] = item['condition'].replace(" Icon", "")
-        
-        # Replace "\n" with ", " in the address
-        item['address'] = item['address'].replace("\n", ", ")
-        
-        # Parse and convert "sale_date"
-        # Remove "UZT" from the string as it causes parsing issues
-        sale_date_str = item['sale_date'].replace(" UZT", "")
-        
-        # Parse the datetime without timezone
-        uzbekistan_time = datetime.strptime(sale_date_str, "Mon. %b %d, %Y %I:%M %p")
-        
-        # Set timezone to Asia/Tashkent
-        uz_tz = pytz.timezone('Asia/Tashkent')
-        localized_time = uz_tz.localize(uzbekistan_time)
-        
-        # Convert to UTC
-        utc_time = localized_time.astimezone(pytz.utc)
-        item['sale_date'] = utc_time.strftime("%Y-%m-%d %H:%M:%S %Z")
-        
         # Insert data into PostgreSQL
         try:
             self.cursor.execute("""
             INSERT INTO copartauto (
                 url, title, guarantee, condition, address, phone, sale_date, 
                 seller_data, lot_number, odometer, transmission, drive, fuel, 
-                keys, price, autocheck, vin_text
+                keys, price, autocheck, vin_text, primary_damage, secondary_damage, ERV, 
+                cylinders, body_style, color, engine_type, vehicle_type, highlights, notes 
             ) VALUES (
                 %(url)s, %(title)s, %(guarantee)s, %(condition)s, %(address)s, %(phone)s, %(sale_date)s, 
                 %(seller_data)s, %(lot_number)s, %(odometer)s, %(transmission)s, %(drive)s, %(fuel)s, 
-                %(keys)s, %(price)s, %(autocheck)s, %(vin_text)s
+                %(keys)s, %(price)s, %(autocheck)s, %(VIN)s, %(primary_damage)s, %(secondary_damage)s, %(ERV)s, 
+                %(cylinders)s, %(body_style)s, %(color)s, %(engine_type)s, %(vehicle_type)s, %(highlights)s, %(notes)s, 
             )
             """, item)
             self.connection.commit()
